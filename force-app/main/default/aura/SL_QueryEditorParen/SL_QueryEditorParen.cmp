@@ -1,0 +1,83 @@
+<aura:component controller="SL_QueryEditor" implements="force:appHostable,flexipage:availableForAllPageTypes"
+    access="global">
+    <aura:attribute name="options" type="List" />
+    <aura:attribute name="isSearchMode" type="Boolean" default="false" />
+    <aura:attribute name="selectedObjectSearch" type="String" />
+    <aura:attribute name="selectedObjectPicklist" type="String" />
+    <aura:attribute name="selectedObject" type="String" />
+    <aura:attribute name="lstSelectedFields" type="List" default="" />
+    <aura:attribute name="strAllFields" type="String" />
+    <aura:attribute name="isUpdateLable" type="Boolean" default="false" />
+
+    <aura:handler name="newSelectedObject" event="c:SL_QueryEditorEvent" action="{!c.handleEventNewObject}" />
+
+    <aura:handler name="change" value="{!v.selectedObject}" action="{!c.changeObject}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <div style="background-color: #eaeaea; border: 6px solid silver;">
+
+        <div class="title-class"> Query Editor</div>
+
+        <div class="main-parent-div-class" style="display: flex; justify-content: space-between;">
+            <div style="display:flex">
+                <div style="width: 22rem; margin-left: 1rem;">
+                    <c:SL_Lookup objectName="Search object" objApiName="EntityDefinition"
+                        searchField="  QualifiedApiName " iconParam="standard:entity" searchName="Type object name"
+                        soslParams=" IsCustomSetting = false and IsQueryable = true " limitOfRecords="10" />
+                </div>
+                <div style="padding-top: 2.2rem; padding-left: 1rem;">
+                    <lightning:input size="middle" type="checkbox" onchange="{!c.handlePicklist}"
+                        checked="{!v.isSearchMode}" />
+                </div>
+            </div>
+            <aura:if isTrue="{! v.selectedObject}">
+                <div style=" width: 22rem; margin-rigth: 3rem;">
+                    <c:SL_MultiPicklist mslabel="{! 'All ' + v.selectedObject + ' fields'}" msoptions="{!v.options}"
+                        isUpdateLable="{!v.isUpdateLable}" />
+                </div>
+            </aura:if>
+
+            <aura:if isTrue="{!! v.selectedObject}">
+                <div style=" width: 22rem; margin-rigth: 3rem;">
+                    <label class="slds-form-element__label">All fields</label>
+
+                    <div class="slds-form-element">
+                        <div class="slds-form-element__control">
+                            <div class="slds-combobox_container slds-size_small">
+                                <div id="ms-picklist-dropdown"
+                                    class="slds-dropdown-trigger slds-dropdown-trigger_click slds-picklist ms-picklist-dropdown"
+                                    aria-expanded="false" aria-haspopup="listbox" role="listbox">
+
+                                    <div style=" width: 22rem; margin-rigth: 3rem;">
+                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"
+                                            role="none" style="    width: 21rem;">
+                                            <input disabled="true" class="slds-combobox__input ms-input" id="ms-input"
+                                                aria-controls="ms-dropdown-items" role="textbox" type="text"
+                                                placeholder="Select a value.." />
+                                            <span
+                                                class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right"
+                                                title="Click to open dropdown">
+                                                <lightning:icon iconName="utility:down" size="x-small"
+                                                    class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+
+        </div>
+
+        <div>
+            <c:queryEditor selectedObjectFromPicklist="{!!v.isSearchMode}"
+                onchangevaluefromsearch="{!c.changevaluefromsearchHandler}"
+                selectedObjectSearch="{!v.selectedObjectSearch}" lstSelectedFields="{!v.lstSelectedFields}"
+                strAllFields="{!v.strAllFields}">
+            </c:queryEditor>
+        </div>
+    </div>
+
+</aura:component>

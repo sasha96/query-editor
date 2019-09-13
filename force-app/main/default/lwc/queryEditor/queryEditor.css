@@ -1,0 +1,59 @@
+.main-classs{
+    /*background-color: #eaeaea;
+    margin-bottom: 5rem;
+    margin-top: 2rem;
+    border: 6px solid silver;*/
+}
+
+.picklist-objects-class{
+    width: 20rem;
+    padding: 1rem;
+}
+
+.header-class{
+    display: flex;
+    justify-content: space-between;
+}
+
+.query-class{
+    width: 50rem;
+    padding: 1rem;
+}
+
+.execute-class{
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+}
+
+.empty-result-class{
+    padding: 1rem;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.def-fields-class{
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding-top: 1rem;
+    padding-left: 1rem;
+}
+
+.inline-elems-class{
+    display: flex;
+    justify-content: space-between;
+}
+
+.table-name-class{
+    display: flex;
+    justify-content: center;
+    font-size: large;
+    font-weight: 600;
+    padding-bottom: 1rem;
+}
+
+.compare-button-class{
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+}

@@ -1,0 +1,191 @@
+<template>
+    <div class="main-classs">
+        <template if:true={isShowPicklist}>
+            <div style="display: flex;">
+                <div>
+                    <lightning-combobox class="picklist-objects-class" label="Select object" value={pickListDefValue}
+                        placeholder="Select Entity" options={lstEntities} onchange={changePicklist}
+                        style="cursor:context-menu;width: 24rem;">
+                    </lightning-combobox>
+                </div>
+                <div style="padding-top: 3rem;">
+                    <lightning-input size="middle" type="checkbox" onchange={handlePicklist}
+                        checked={selectedObjectFromPicklist}>
+                    </lightning-input>
+                </div>
+            </div>
+
+            <div style="padding-left: 1rem; padding-top: 1rem; font-weight: bold; font-size: 1rem;">
+
+                <template if:true={selectedObjectFromPicklist}>
+                    <template if:true={selectedObjectPicklist}>
+                        Selected object : {selectedObjectPicklist}
+                    </template>
+                    <template if:false={selectedObjectPicklist}>
+                        You didn't select any object. Please do it ...
+                    </template>
+                </template>
+
+                <template if:false={selectedObjectFromPicklist}>
+                    <template if:true={selectedObjectSearch}>
+                        Selected Object : {selectedObjectSearch}
+                    </template>
+                    <template if:false={selectedObjectSearch}>
+                        You didn't select any object. Please do it ...
+                    </template>
+                </template>
+
+
+            </div>
+
+            <div style="padding-left: 1rem; padding-top: 1rem; font-weight: bold; font-size: 1rem;">
+
+                <template if:true={strAllFields}>
+                    Selected fields : {strAllFields}
+                </template>
+
+                <template if:false={strAllFields}>
+                    You didn't select any fields. Please do it ...
+                </template>
+
+            </div>
+
+            <div
+                style="padding-left: 1rem; padding-top: 1rem; font-weight: bold; font-size: 1rem;padding-bottom: 7rem;">
+
+                <template if:true={strAllFields}>
+                    <template if:true={selectedObjectFromPicklist}>
+                        Final query : SELECT {strAllFields} FROM {selectedObjectPicklist}
+                    </template>
+                    <template if:false={selectedObjectFromPicklist}>
+                        Final query : SELECT {strAllFields} FROM {selectedObjectSearch}
+                    </template>
+                </template>
+
+            </div>
+            <hr>
+
+            <hr>
+
+            <div class="header-class">
+                <div>
+                </div>
+                <div>
+                    <div class="def-fields-class">
+                        {searchValueDefault}
+                    </div>
+                    <div class="def-fields-class">
+                        {searchFromValue}
+                    </div>
+                    <lightning-textarea label="Continue query" class="query-class" placeholder="Type your query..."
+                        value={searchValueToShow} onchange={searchHandler} autocomplete="on" required
+                        message-when-value-missing={emptyQueryField}>
+                    </lightning-textarea>
+
+                    <lightning-button class='execute-class' label="Execute" title="Execute query"
+                        onclick={executeQuery}>
+                    </lightning-button>
+                </div>
+            </div>
+
+        </template>
+
+        <div>
+            <template if:true={listRecords}>
+                <div class="table-name-class">
+                    {nameOfTable}
+                </div>
+                <table
+                    class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped">
+
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <template for:each={listHeaderItems} for:item='item'>
+                                <th key={item} class="slds-is-sortable slds-text-title-caps slds-text-link--reset "
+                                    scope="col">
+                                    {item.label}
+                                </th>
+                            </template>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <template for:each={listRecords} for:item="record">
+                            <tr key={record.Id}>
+                                <th if:true={record.Id} scope="col" class="inline-elems-class">
+                                    <lightning-input type="checkbox" data-id={record.Id} onchange={handleCheckboxChange}
+                                        checked={record.isChecked}>
+                                    </lightning-input>
+                                    <a>
+                                        <div data-id={record.Id} onclick={openRecord}>
+                                            {record.Id}
+                                        </div>
+                                    </a>
+                                    <div>
+                                        <lightning-button-icon icon-name="utility:new_window"
+                                            alternative-text="open in new tab" size="small" data-id2={record.Id}
+                                            onclick={navigateToRecordViewPageInNewTab}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </th>
+                                <th if:true={record.Name} scope="col">
+                                    {record.Name}
+                                </th>
+
+                                <th if:true={record.LastModifiedDate} scope="col">
+                                    {record.LastModifiedDate}
+                                </th>
+                                <th if:true={record.LastModifiedBy} scope="col" class="inline-elems-class">
+                                    <a>
+                                        <div data-id={record.LastModifiedBy.Id} onclick={navigateToRecordViewPageByUser}
+                                            class="recordId-class">
+                                            {record.LastModifiedBy.Name}
+                                        </div>
+                                    </a>
+                                    <div>
+                                        <lightning-button-icon icon-name="utility:new_window"
+                                            alternative-text="open in new tab" size="small"
+                                            data-id2={record.LastModifiedBy.Id}
+                                            onclick={navigateToRecordViewPageInNewTab}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </th>
+                                <th if:true={record.CreatedDate} scope="col">
+                                    {record.CreatedDate}
+                                </th>
+                                <th if:true={record.CreatedBy} scope="col" class="inline-elems-class">
+                                    <a>
+                                        <div data-id={record.CreatedBy.Id} onclick={navigateToRecordViewPageByUser}
+                                            class="recordId-class">
+                                            {record.CreatedBy.Name}
+                                        </div>
+                                    </a>
+                                    <div>
+                                        <lightning-button-icon icon-name="utility:new_window"
+                                            alternative-text="open in new tab" size="small"
+                                            data-id2={record.CreatedBy.Id} onclick={navigateToRecordViewPageInNewTab}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </th>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+
+            <template if:false={listRecords}>
+                <div class="empty-result-class">
+                    {emptyResult}
+                </div>
+            </template>
+
+            <!-- <template if:true={listSelectedRecords}> -->
+            <div class="compare-button-class">
+                <lightning-button class='' label="Compare selected records" title="Compare selected records"
+                    onclick={compareRecords} disabled={disableCompare}>
+                </lightning-button>
+            </div>
+            <!-- </template> -->
+        </div>
+    </div>
+</template>
