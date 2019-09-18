@@ -21,7 +21,27 @@ public class SL_QueryEditor {
     }
 
     @AuraEnabled
-    public static String getObjectRecords(String query){
+    public static String getObjectRecords(String lstSelectedFields, String selectedObject, String whereCondition, String limitValue){
+        
+        List<selectedFieldWrapper> listFields = (List<selectedFieldWrapper>)System.JSON.deserialize(lstSelectedFields, List<selectedFieldWrapper>.class);  
+        
+        String query = 'SELECT ';
+
+        for (Integer i = 0; i < listFields.size(); i++) {
+            query += listFields[i].ApiName + ',';
+        }
+        query = query.removeEnd(',');        
+
+        query += ' FROM ' + selectedObject;
+
+        if(whereCondition != '' && whereCondition != null){
+            query += ' WHERE ' + whereCondition + ' ';
+        }
+
+        if(limitValue != '' && limitValue != null){
+            query += ' LIMIT ' + limitValue;
+        }
+        
         List<sObject> records = Database.query(query);
         return JSON.serialize(records);
     }
@@ -48,11 +68,23 @@ public class SL_QueryEditor {
         public String apiName 	{get;set;}
         public Object type 	    {get;set;}
         public String label	    {get;set;} 
+        public Boolean selected	{get;set;} 
 
         public FieldWrapper(String apiName, Object type, String label){
             this.apiName = apiName;
             this.type = type;
             this.label = label;
+            this.selected = false;
+        }
+    }
+
+    public class selectedFieldWrapper {
+        public String ApiName 	{get;set;}
+        public String Name 	{get;set;}
+
+        public selectedFieldWrapper(String ApiName, String Name){
+            this.ApiName = ApiName;
+            this.Name = Name;
         }
     }
 

@@ -2,56 +2,33 @@ import { LightningElement, api, track } from 'lwc';
 import getAllObjectsFromOrg from "@salesforce/apex/SL_QueryEditor.getAllObjectsFromOrg";
 import getObjectRecords from "@salesforce/apex/SL_QueryEditor.getObjectRecords";
 import { NavigationMixin } from 'lightning/navigation';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 export default class QueryEditor extends NavigationMixin(LightningElement) {
+
     @track isShowPicklist = false;
     @track pickListDefValue = 'Select object';
     @track recordsLimit = 3;
     @track lstEntities = '';
-    @track searchValueDefault = "SELECT id, Name, LastModifiedDate, LastModifiedBy.Name, CreatedDate, CreatedBy.Name ";
-    @track searchFromValueDefault = " FROM ";
-    @track searchFromValue;
-    @track searchValue = "";
-    @track searchValueToShow = "";
-    @track emptyQueryField = 'Pleas type your query here'
     @track emptyResult = 'There is no records due to your search ...';
-
     @track disableCompare = false;
     @track listSelectedRecords;
     @track nameOfTable = this.pickListDefValue + ' table';
     @track listRecords;
-    @track listHeaderItems = [
-        {
-            'label': 'Record Id',
-            'value': 'id'
-        },
-        {
-            'label': 'Name',
-            'value': 'Name'
-        },
-        {
-            'label': 'Last Modified Date',
-            'value': 'LastModifiedDate'
-        },
-        {
-            'label': 'Last Modified By',
-            'value': 'LastModifiedBy.Name'
-        },
-        {
-            'label': 'Created Date',
-            'value': 'CreatedDate'
-        },
-        {
-            'label': 'Created By ',
-            'value': 'CreatedBy.Name'
-        }
-    ];
+    @track listHeaderItems = [];
+    @track limitValue = 10;
+    @track whereCondition = '';
+    @track limitError = 'Please add a limit of records due to increasing Salesforce performance';
 
+    @api showSpinner = false;
     @api strAllFields;
     @api lstSelectedFields = '';
     @api selectedObjectFromPicklist = false;
     @api selectedObject;
     @api selectedObjectSearch;
     @api selectedObjectPicklist;
+    @track classTableNameDef = 'slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped';
+    @track classTableName = '';
+
     connectedCallback() {
         this.disableCompare = true;
         this.selectedObjectFromPicklist = false;
@@ -69,119 +46,108 @@ export default class QueryEditor extends NavigationMixin(LightningElement) {
                 }
 
                 this.lstEntities = listOfEntities;
-                this.searchValueToShow = ' LIMIT ' + this.recordsLimit
                 this.searchFromValue = this.searchFromValueDefault + this.pickListDefValue;
-                this.searchValue = this.searchValueDefault + this.searchFromValue + this.searchValueToShow;
-
                 this.isShowPicklist = true;
-                //this.executeQuery();
             })
             .catch(error => {
-                console.log(error);
+                this.showToastMessage('error', 'Error happend when you tried to get All Objects From Org' + error, 'error', 5000);
             })
     }
 
 
     changePicklist(event) {
         var selectedType = event.detail.value;
-        this.searchValueToShow = ' LIMIT ' + this.recordsLimit;
         this.searchFromValue = this.searchFromValueDefault + selectedType;
-        this.searchValue = this.searchValueDefault + this.searchFromValue + this.searchValueToShow;
         this.nameOfTable = selectedType + ' table';
-
         this.selectedObjectPicklist = selectedType;
+
         if (this.selectedObjectFromPicklist) {
             this.selectedObject = this.selectedObjectPicklist;
         }
 
-        //if (this.selectedObjectFromPicklist) {
         this.dispatchEvent(new CustomEvent('changevaluefromsearch', {
             detail: {
                 value: this.selectedObjectFromPicklist,
                 nameObject: this.selectedObjectPicklist
             }
         }));
-        //}
-    }
-
-    searchHandler(event) {
-        this.searchValue = this.searchValueDefault + this.searchFromValue + ' ' + event.detail.value;
     }
 
     executeQuery(event) {
 
+        var lstSelectedFields = this.lstSelectedFields;
+        var selectedObject = this.selectedObjectFromPicklist ? this.selectedObjectPicklist : this.selectedObjectSearch;
+        var whereCondition = this.whereCondition;
+        var limitValue = this.limitValue;
+        this.disableCompare = true;
+        this.showSpinner = true;
+
+        this.isMoreThan9Fields = false;
         getObjectRecords({
-            query: this.searchValue
+            lstSelectedFields: JSON.stringify(lstSelectedFields),
+            selectedObject: selectedObject,
+            whereCondition: whereCondition,
+            limitValue: limitValue
         })
             .then(result => {
 
                 var deserialize = JSON.parse(result);
 
                 if (deserialize.length > 0) {
+
+                    this.classTableName = this.classTableNameDef;
+                    this.classTableName += this.lstSelectedFields.length > 9 ? ' additional-table-main-class ' : '';
+
+                    var listHeaderItems = [];
+                    for (var fil in this.lstSelectedFields) {
+                        listHeaderItems.push({
+                            label: this.lstSelectedFields[fil].Name
+                        })
+                    }
                     var prepareList = [];
+
                     for (var record in deserialize) {
+                        var onerec = [];
+                        var recordId = deserialize[record].Id;
+
+                        for (var fil in this.lstSelectedFields) {
+
+                            var fieldValue = deserialize[record][this.lstSelectedFields[fil].ApiName];
+
+                            if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+                                fieldValue == ' ';
+                            }
+
+                            var objectValues = '';
+                            if (typeof fieldValue === 'object') {
+                                for (var inn2 in fieldValue) {
+                                    if (fieldValue[inn2] !== null) {
+                                        objectValues += fieldValue[inn2] + '; ';
+                                    }
+                                }
+                            }
+
+                            onerec.push({
+                                nameOfField: objectValues !== '' ? objectValues : fieldValue
+                            })
+                        }
                         prepareList.push({
-                            'Id': deserialize[record].Id,
-                            'Name': deserialize[record].Name,
-                            'LastModifiedDate': this.formatDatehelper(new Date(deserialize[record].LastModifiedDate)),
-                            'LastModifiedBy': deserialize[record].LastModifiedBy,
-                            'CreatedDate': this.formatDatehelper(new Date(deserialize[record].CreatedDate)),
-                            'CreatedBy': deserialize[record].CreatedBy,
-                            'isChecked': false
+                            record: onerec,
+                            isChecked: false,
+                            recordId: recordId
                         });
                     }
 
                     this.listRecords = prepareList;
+                    this.listHeaderItems = listHeaderItems;
                 } else {
                     this.listRecords = '';
                 }
+                this.showSpinner = false;
             })
             .catch(error => {
-                console.log(error);
+                this.showToastMessage('error', 'Error happend when you tried to execute Query' + error, 'error', 5000);
             })
-    }
-
-    formatDatehelper(date) {
-
-        var hours = date.getHours();
-        var minutes = date.getMinutes();
-        var ampm = hours >= 12 ? 'pm' : 'am';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        var strTime = hours + ':' + minutes + ' ' + ampm;
-        return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear() + "  " + strTime;
-
-    }
-
-    openRecord(event) {
-        var selectedId = event.target.dataset.id;
-
-        this[NavigationMixin.Navigate]({
-            type: 'standard__recordPage',
-            attributes: {
-                recordId: selectedId,
-                actionName: 'view'
-            }
-        });
-    }
-
-    navigateToRecordViewPageByUser(event) {
-        var selectedId = event.target.dataset.id;
-        this[NavigationMixin.Navigate]({
-            type: 'standard__recordPage',
-            attributes: {
-                recordId: selectedId,
-                objectApiName: 'User',
-                actionName: 'view'
-            }
-        });
-
-    }
-
-    navigateToRecordViewPageInNewTab(event) {
-        var selectedId = event.target.dataset.id2;
-        window.open('/' + selectedId, '_blank');
     }
 
     handleCheckboxChange(event) {
@@ -190,33 +156,36 @@ export default class QueryEditor extends NavigationMixin(LightningElement) {
 
         var prepareList = this.listRecords;
 
-        var prepareSelectedItems = [];
+        var isSelectedAtLeastOne = false;
 
         for (var record in prepareList) {
 
-            if (selectedId === prepareList[record].Id) {
+            if (selectedId === prepareList[record].recordId) {
                 prepareList[record].isChecked = !prepareList[record].isChecked;
             }
+
             if (prepareList[record].isChecked) {
-                prepareSelectedItems.push({
-                    recordId: prepareList[record].Id
-                })
+                isSelectedAtLeastOne = true;
             }
         }
 
-        this.listRecords = prepareList;
-
-        if (prepareSelectedItems.length > 0) {
-            this.listSelectedRecords = prepareSelectedItems;
-        } else {
-            this.listSelectedRecords = '';
-        }
-
-        this.disableCompare = this.listSelectedRecords.length > 0 ? false : true;
+        this.disableCompare = isSelectedAtLeastOne ? false : true;
     }
 
     compareRecords(event) {
 
+        this.showSpinner = true;
+        var listRecords = this.listRecords;
+        var newListToCompare = [];
+
+        for (var record in listRecords) {
+            if (listRecords[record].isChecked) {
+                newListToCompare.push(listRecords[record]);
+            }
+        }
+
+        this.listRecords = newListToCompare;
+        this.showSpinner = false;
     }
 
     handlePicklist(event) {
@@ -233,5 +202,27 @@ export default class QueryEditor extends NavigationMixin(LightningElement) {
         if (this.selectedObjectFromPicklist) {
             this.selectedObject = this.selectedObjectPicklist;
         }
+    }
+
+    whereConditionHandler(event) {
+        this.whereCondition = event.detail.value;
+    }
+
+    limitHandler(event) {
+        this.limitValue = event.detail.value;
+    }
+
+    /* show toast message */
+    showToastMessage(title, message, variant, duration, mode) {
+
+        var toastEvnt = new ShowToastEvent({
+            title: title,
+            message: message,
+            variant: variant,
+            duration: duration,
+            mode: mode
+        });
+        this.dispatchEvent(toastEvnt);
+
     }
 }

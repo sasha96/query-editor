@@ -1,8 +1,10 @@
 ({
     changeObject: function (component, event, helper) {
+
         component.set('v.lstSelectedFields', '');
         component.set('v.strAllFields', '');
         component.set('v.options', '');
+
         var isUpdateLable = component.get('v.isUpdateLable');
         component.set('v.isUpdateLable', !isUpdateLable);
 
@@ -23,9 +25,10 @@
                     for (var field in deserialize) {
                         listOfFields.push(deserialize[field]);
                     }
-                    debugger;
+
                     var newlistOfFields = this.sortFields(listOfFields);
                     component.set("v.options", newlistOfFields);
+                    component.set("v.isAllSelected", false);
                 } else {
                     var toastEvent = $A.get("e.force:showToast");
                     toastEvent.setParams({

@@ -1,13 +1,7 @@
-.main-classs{
-    /*background-color: #eaeaea;
-    margin-bottom: 5rem;
-    margin-top: 2rem;
-    border: 6px solid silver;*/
-}
-
 .picklist-objects-class{
-    width: 20rem;
     padding: 1rem;
+    cursor:context-menu;
+    width: 24rem;
 }
 
 .header-class{
@@ -57,3 +51,63 @@
     justify-content: flex-end;
     padding: 1rem;
 }
+
+.additional-table-main-class{
+    display: inline-block !important; 
+    overflow: auto;
+    max-width: 86rem;
+    width: 100%;
+    background-color: #eaeaea;
+}
+
+.position-relative-class{
+    position: relative;
+}
+
+.textarea-parent-class{
+    display: flex; 
+    padding-left:1rem;
+    margin-right: 1rem;
+}
+
+.textarea-class{
+    width: 30rem; 
+    padding-left: 1rem;
+}
+
+.where-class{
+    padding-top: 3rem;
+    font-weight: bold;
+}
+
+.input-limit-class{
+    padding-left: 1rem; 
+    padding-top: 1rem; 
+    max-width: 12rem;
+}
+
+.font-style-class{
+    font-weight: bold;
+}
+
+.str-selected-class{
+    padding-left: 1rem; 
+    padding-top: 1rem;  
+    font-size: 1rem;     
+    max-width: 83rem;
+}
+
+.str-parent-selected-class{
+    padding-left: 1rem; 
+    padding-top: 1rem; 
+    font-size: 1rem;
+}
+
+.disp-flex-class{
+    display: flex;
+}
+
+.pad-top-class{
+    padding-top: 3rem;
+}
+
